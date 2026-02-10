@@ -61,13 +61,13 @@
 
         // Theme toggle functionality
         function initTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            let savedTheme = localStorage.getItem('theme') || 'light';
             if (savedTheme === 'dodgers') {
-                document.getElementById('themeToggle').textContent = '⚾';
-            } else {
-                updateThemeIcon(savedTheme);
+                savedTheme = 'light';
+                localStorage.setItem('theme', 'light');
             }
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
         }
 
         function toggleTheme() {
