@@ -198,3 +198,26 @@ h1 {
     padding: 20px;
     transition: color 0.3s ease;
 }
+
+[data-theme="dodgers"] {
+    --bg-gradient-start: #005A9C;
+    --bg-gradient-mid: #0066B5;
+    --bg-gradient-end: #1E90FF;
+    --card-bg: #ffffff;
+    --text-primary: #005A9C;
+    --text-secondary: #1a5276;
+    --text-muted: #7fb3d8;
+    --border-color: #b0d4f1;
+    --button-bg: #005A9C;
+    --button-hover: #004080;
+    --shadow: rgba(0, 90, 156, 0.3);
+}
+
+[data-theme="dodgers"] h1 {
+    font-style: italic;
+}
+
+[data-theme="dodgers"] .refresh-btn {
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}

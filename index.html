@@ -49,8 +49,8 @@
                 </div>
             </div>
 
-            <button id="refreshBtn" class="refresh-btn">Refresh Data</button>
-            <div class="timestamp">Updated <span id="timestamp">--</span></div>
+            <button id="refreshBtn" class="refresh-btn">Refresh Page</button>
+            <div class="timestamp">Weather Station Last Updated <span id="timestamp">--</span></div>
         </div>
     </div>
 
@@ -63,12 +63,16 @@
         function initTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
+            if (savedTheme === 'dodgers') {
+                document.getElementById('themeToggle').textContent = '⚾';
+            } else {
+                updateThemeIcon(savedTheme);
+            }
         }
 
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const newTheme = (currentTheme === 'dark' || currentTheme === 'dodgers') ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);
@@ -278,6 +282,21 @@
                 refreshBtn.disabled = false;
             }
         }
+
+        // Easter egg: type "dodgers" to activate Dodgers theme
+        let easterEggBuffer = '';
+        document.addEventListener('keydown', function(e) {
+            easterEggBuffer += e.key.toLowerCase();
+            if (easterEggBuffer.length > 7) {
+                easterEggBuffer = easterEggBuffer.slice(-7);
+            }
+            if (easterEggBuffer === 'dodgers') {
+                document.documentElement.setAttribute('data-theme', 'dodgers');
+                localStorage.setItem('theme', 'dodgers');
+                document.getElementById('themeToggle').textContent = '⚾';
+                easterEggBuffer = '';
+            }
+        });
 
         // Initialize
         initTheme();
