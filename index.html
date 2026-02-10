@@ -283,18 +283,18 @@
             }
         }
 
-        // Easter egg: type "dodgers" to activate Dodgers theme
-        let easterEggBuffer = '';
-        document.addEventListener('keydown', function(e) {
-            easterEggBuffer += e.key.toLowerCase();
-            if (easterEggBuffer.length > 7) {
-                easterEggBuffer = easterEggBuffer.slice(-7);
-            }
-            if (easterEggBuffer === 'dodgers') {
+        // Easter egg: tap the coordinates 7 times to activate Dodgers theme
+        let eggTaps = 0;
+        let eggTimer = null;
+        document.querySelector('.location').addEventListener('click', function() {
+            eggTaps++;
+            clearTimeout(eggTimer);
+            eggTimer = setTimeout(function() { eggTaps = 0; }, 3000);
+            if (eggTaps >= 7) {
+                eggTaps = 0;
                 document.documentElement.setAttribute('data-theme', 'dodgers');
                 localStorage.setItem('theme', 'dodgers');
                 document.getElementById('themeToggle').textContent = '⚾';
-                easterEggBuffer = '';
             }
         });
 
