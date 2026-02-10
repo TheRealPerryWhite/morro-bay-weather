@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morro Bay (Back Bay) - Current Conditions</title>
+    <style>
+        :root {
+            --bg-gradient-start: #0f2027;
+            --bg-gradient-mid: #203a43;
+            --bg-gradient-end: #2c5364;
+            --card-bg: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border-color: #e5e7eb;
+            --button-bg: #0ea5e9;
+            --button-hover: #0284c7;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-start: #000000;
+            --bg-gradient-mid: #0a0a0a;
+            --bg-gradient-end: #1a1a1a;
+            --card-bg: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border-color: #374151;
+            --button-bg: #0ea5e9;
+            --button-hover: #0284c7;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px var(--shadow);
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--button-bg);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--button-hover);
+            transform: scale(1.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .location {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 30px;
+            transition: color 0.3s ease;
+        }
+
+        .reading {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-color 0.3s ease;
+        }
+
+        .reading:last-of-type {
+            border-bottom: none;
+            margin-bottom: 30px;
+        }
+
+        .reading-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .reading-value {
+            font-size: 48px;
+            font-weight: 300;
+            color: var(--text-primary);
+            line-height: 1;
+            display: flex;
+            align-items: baseline;
+            transition: color 0.3s ease;
+        }
+
+        .reading-unit {
+            font-size: 24px;
+            color: var(--text-muted);
+            margin-left: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .tide-direction {
+            font-size: 24px;
+            margin-left: 12px;
+            opacity: 0.6;
+        }
+
+        .tide-rising {
+            color: #10b981;
+        }
+
+        .tide-falling {
+            color: #ef4444;
+        }
+
+        .refresh-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: var(--button-hover);
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.98);
+        }
+
+        .refresh-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-top: 16px;
+            opacity: 0.7;
+            transition: color 0.3s ease;
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        [data-theme="dark"] .error {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 20px;
+            transition: color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">☀️</button>
+        <h1>Morro Bay (Back Bay)</h1>
+        <div class="location">35.3338°N, 120.8473°W</div>
+
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="loading" class="loading">Loading current conditions...</div>
+
+        <div id="data" style="display: none;">
+            <div class="reading">
+                <div class="reading-label">Temperature</div>
+                <div class="reading-value">
+                    <span id="temperature">--</span>
+                    <span class="reading-unit">°F</span>
+                </div>
+            </div>
+
+            <div class="reading">
+                <div class="reading-label">Rain (24 hours)</div>
+                <div class="reading-value">
+                    <span id="rainfall">--</span>
+                    <span class="reading-unit">in</span>
+                </div>
+            </div>
+
+            <div class="reading">
+                <div class="reading-label">Wind Speed</div>
+                <div class="reading-value">
+                    <span id="windspeed">--</span>
+                    <span class="reading-unit">mph</span>
+                </div>
+            </div>
+
+            <div class="reading">
+                <div class="reading-label">Current Tide</div>
+                <div class="reading-value">
+                    <span id="tide">--</span>
+                    <span class="reading-unit">ft</span>
+                    <span id="tideDirection" class="tide-direction"></span>
+                </div>
+            </div>
+
+            <button id="refreshBtn" class="refresh-btn">Refresh Data</button>
+            <div class="timestamp">Updated <span id="timestamp">--</span></div>
+        </div>
+    </div>
+
+    <script>
+        const ERDDAP_BASE = 'https://erddap.cencoos.org/erddap/tabledap';
+        const DATASET_ID = 'edu_calpoly_marine_morro_bay_met';
+        const NOAA_TIDE_STATION = '9412110'; // Morro Bay station
+
+        // Theme toggle functionality
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const toggle = document.getElementById('themeToggle');
+            toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+        }
+
+        // Convert Celsius to Fahrenheit
+        function celsiusToFahrenheit(celsius) {
+            return (celsius * 9/5) + 32;
+        }
+
+        // Convert m/s to mph
+        function msToMph(ms) {
+            return ms * 2.23694;
+        }
+
+        // Convert mm to inches
+        function mmToInches(mm) {
+            return mm * 0.0393701;
+        }
+
+        // Format relative time (e.g., "2 minutes ago")
+        function formatRelativeTime(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const secondsAgo = Math.floor((now - date) / 1000);
+
+            if (secondsAgo < 60) {
+                return 'just now';
+            } else if (secondsAgo < 3600) {
+                const minutes = Math.floor(secondsAgo / 60);
+                return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            } else if (secondsAgo < 86400) {
+                const hours = Math.floor(secondsAgo / 3600);
+                return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            } else {
+                const days = Math.floor(secondsAgo / 86400);
+                return `${days} day${days !== 1 ? 's' : ''} ago`;
+            }
+        }
+
+        // Fetch weather data from ERDDAP
+        async function fetchWeatherData() {
+            try {
+                // Get the most recent data point
+                // ERDDAP constraint syntax: &time>=value&orderByMax("column")
+                const url = `${ERDDAP_BASE}/${DATASET_ID}.json?time,air_temperature,wind_speed,lwe_thickness_of_precipitation_amount_cm_time__sum_over_p1d&orderByMax(%22time%22)`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                // ERDDAP returns data as [columnNames, ...rows]
+                const columnNames = data.table.columnNames;
+                const rows = data.table.rows;
+
+                if (rows.length === 0) throw new Error('No data available');
+
+                // Get the most recent row
+                const latestRow = rows[0];
+
+                // Map column names to values
+                const dataMap = {};
+                columnNames.forEach((name, index) => {
+                    dataMap[name] = latestRow[index];
+                });
+
+                return {
+                    timestamp: dataMap.time,
+                    temperature: dataMap.air_temperature,
+                    windSpeed: dataMap.wind_speed,
+                    precipitation: dataMap['lwe_thickness_of_precipitation_amount_cm_time__sum_over_p1d']
+                };
+            } catch (error) {
+                console.error('Weather data fetch error:', error);
+                throw error;
+            }
+        }
+
+        // Format date for NOAA API (YYYYMMdd HH:mm)
+        function formatNOAADate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}${month}${day} ${hours}:${minutes}`;
+        }
+
+        // Fetch tide data from NOAA (with direction)
+        async function fetchTideData() {
+            try {
+                const now = new Date();
+                const beginDate = new Date(now.getTime() - (60 * 60 * 1000)); // 1 hour ago
+
+                const params = new URLSearchParams({
+                    'station': NOAA_TIDE_STATION,
+                    'product': 'water_level',
+                    'datum': 'MLLW',
+                    'units': 'english',
+                    'time_zone': 'lst_ldt',
+                    'format': 'json',
+                    'begin_date': formatNOAADate(beginDate),
+                    'end_date': formatNOAADate(now)
+                });
+
+                const url = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?${params}`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                if (data.data && data.data.length >= 2) {
+                    const latest = parseFloat(data.data[data.data.length - 1].v);
+                    const previous = parseFloat(data.data[data.data.length - 2].v);
+
+                    return {
+                        level: latest,
+                        direction: latest > previous ? 'rising' : latest < previous ? 'falling' : 'steady'
+                    };
+                } else if (data.data && data.data.length === 1) {
+                    return {
+                        level: parseFloat(data.data[0].v),
+                        direction: null
+                    };
+                }
+
+                throw new Error('No tide data available');
+            } catch (error) {
+                console.error('Tide data fetch error:', error);
+                return null; // Tide data is optional
+            }
+        }
+
+        // Update the display
+        async function updateDisplay() {
+            const loadingEl = document.getElementById('loading');
+            const dataEl = document.getElementById('data');
+            const errorEl = document.getElementById('error');
+            const refreshBtn = document.getElementById('refreshBtn');
+
+            try {
+                loadingEl.style.display = 'block';
+                dataEl.style.display = 'none';
+                errorEl.style.display = 'none';
+                refreshBtn.disabled = true;
+
+                // Fetch both weather and tide data
+                const [weatherData, tideData] = await Promise.all([
+                    fetchWeatherData(),
+                    fetchTideData()
+                ]);
+
+                // Update temperature (convert C to F)
+                const tempF = celsiusToFahrenheit(weatherData.temperature);
+                document.getElementById('temperature').textContent = tempF.toFixed(1);
+
+                // Update rainfall (convert mm to inches)
+                const rainfallIn = mmToInches(weatherData.precipitation);
+                document.getElementById('rainfall').textContent = rainfallIn.toFixed(2);
+
+                // Update wind speed (convert m/s to mph)
+                const windMph = msToMph(weatherData.windSpeed);
+                document.getElementById('windspeed').textContent = windMph.toFixed(1);
+
+                // Update tide with direction
+                const tideEl = document.getElementById('tide');
+                const tideDirectionEl = document.getElementById('tideDirection');
+
+                if (tideData !== null) {
+                    tideEl.textContent = tideData.level.toFixed(2);
+
+                    // Show direction arrow if available
+                    if (tideData.direction === 'rising') {
+                        tideDirectionEl.textContent = '↑';
+                        tideDirectionEl.className = 'tide-direction tide-rising';
+                    } else if (tideData.direction === 'falling') {
+                        tideDirectionEl.textContent = '↓';
+                        tideDirectionEl.className = 'tide-direction tide-falling';
+                    } else {
+                        tideDirectionEl.textContent = '';
+                    }
+                } else {
+                    tideEl.textContent = 'N/A';
+                    tideDirectionEl.textContent = '';
+                }
+
+                // Update timestamp
+                document.getElementById('timestamp').textContent = formatRelativeTime(weatherData.timestamp);
+
+                // Show data, hide loading
+                loadingEl.style.display = 'none';
+                dataEl.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error updating display:', error);
+                errorEl.textContent = `Error loading data: ${error.message}`;
+                errorEl.style.display = 'block';
+                loadingEl.style.display = 'none';
+            } finally {
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // Initialize
+        initTheme();
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('refreshBtn').addEventListener('click', updateDisplay);
+        updateDisplay();
+    </script>
+</body>
+</html>
